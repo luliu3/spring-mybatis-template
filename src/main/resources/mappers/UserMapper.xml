@@ -28,4 +28,13 @@
         WHERE id = #{id}
     </update>
 
+    <!-- 分页计数 -->
+    <select id="selectUserCount" resultType="int">
+        SELECT count(*) FROM user WHERE id BETWEEN #{low} AND #{high}
+    </select>
+
+    <select id="selectUserPage" parameterType="java.util.Map" resultType="User">
+        SELECT * FROM user WHERE id BETWEEN #{low} AND #{high}
+    </select>
+
 </mapper>

@@ -1,5 +1,6 @@
 package com.luliu.rest.dao;
 
+import com.luliu.rest.utils.Page;
 import org.springframework.dao.DataAccessException;
 
 import java.util.List;
@@ -35,10 +36,10 @@ public interface IBaseDao<T> {
 
     public int delete(Object obj, String mapId) throws DataAccessException;
 
-    // todo ·ÖÒ³
+    public Page<T> selectPage(Object obj) throws DataAccessException;
 
-//    public Page<T> selectPage(Object obj) throws DataAccessException;
+    public Page<T> selectPage(Object obj, int pageIndex, int pageSize) throws DataAccessException;
 
-//    public Page<T> selectPage(Object obj, String mapId) throws DataAccessException;
+    public Page<T> selectPage(Object obj, String mapId, int pageIndex, int pageSize) throws DataAccessException;
 
 }

@@ -51,3 +51,4 @@ with body
 }
 ```
 - DEL: `http://localhost:8080/rest/user/delete/100`
+- Pagination: `http://localhost:8080/rest/user/page?low=1&high=10`

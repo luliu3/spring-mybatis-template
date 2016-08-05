@@ -2,6 +2,8 @@ package com.luliu.rest.controller;
 
 import com.luliu.rest.model.User;
 import com.luliu.rest.service.IUserService;
+import com.luliu.rest.utils.Page;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,8 @@ public class UserController {
 
     @Resource
     private IUserService userService;
+
+    private static org.slf4j.Logger logger = LoggerFactory.getLogger(UserController.class);
 
     @GetMapping
     public ResponseEntity getAllUser() {
@@ -84,5 +88,11 @@ public class UserController {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Record Updated", user.getFirstname() + " " + user.getLastname());
         return new ResponseEntity<User>(user, headers, HttpStatus.OK);
+    }
+
+    @RequestMapping("/page")
+    public ResponseEntity getUserInRange(@RequestParam int low, @RequestParam int high) {
+        Page<User> page = userService.getUserPageInRange(low, high);
+        return new ResponseEntity<Page<User>>(page, HttpStatus.OK);
     }
 }

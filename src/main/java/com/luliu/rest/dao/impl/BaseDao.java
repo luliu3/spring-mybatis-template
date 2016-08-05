@@ -1,6 +1,7 @@
 package com.luliu.rest.dao.impl;
 
 import com.luliu.rest.dao.IBaseDao;
+import com.luliu.rest.utils.Page;
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.dao.DataAccessException;
 
@@ -22,14 +23,16 @@ import java.util.List;
 
 public class BaseDao<T> implements IBaseDao<T> {
 
-    private static final String MYBATIS_MAPPER_NAMESPACE = "mapper.";
-    private static final String MYBATIS_SEPARATOR = ".";
-    private static final String MYBATIS_INSERT = "insert";
-    private static final String MYBATIS_SELECT = "select";
-    private static final String MYBATIS_LIST = "List";
-    private static final String MYBATIS_DELETE = "delete";
-    private static final String MYBATIS_UPDATE = "update";
-    private static final String MYBATIS_COUNT = "Count";
+    private static final String NAMESPACE = "mapper.";
+    private static final String SEPARATOR = ".";
+    private static final String INSERT = "insert";
+    private static final String SELECT = "select";
+    private static final String LIST = "List";
+    private static final String DELETE = "delete";
+    private static final String UPDATE = "update";
+    private static final String COUNT = "Count";
+    private static final String PAGE = "Page";
+    private static final String NULL_STRING = "";
 
     @Resource
     private SqlSession sqlSession;
@@ -44,35 +47,34 @@ public class BaseDao<T> implements IBaseDao<T> {
     }
 
     public T selectOne(Object obj) throws DataAccessException {
-        return sqlSession.selectOne(MYBATIS_MAPPER_NAMESPACE + ModelName + MYBATIS_SEPARATOR + MYBATIS_SELECT + ModelName, obj);
+        return this.selectOne(obj, NULL_STRING);
     }
 
     public T selectOne(Object obj, String mapId) throws DataAccessException {
-        return sqlSession.selectOne(MYBATIS_MAPPER_NAMESPACE + ModelName + MYBATIS_SEPARATOR + MYBATIS_SELECT + ModelName + mapId, obj);
+        return sqlSession.selectOne(NAMESPACE + ModelName + SEPARATOR + SELECT + ModelName + mapId, obj);
     }
 
     public List<T> selectList() throws DataAccessException {
-        return sqlSession.selectList(MYBATIS_MAPPER_NAMESPACE + ModelName + MYBATIS_SEPARATOR + MYBATIS_SELECT + ModelName + MYBATIS_LIST);
+        return this.selectList(null, NULL_STRING);
     }
 
     public List<T> selectList(Object obj) throws DataAccessException {
-        return sqlSession.selectList(MYBATIS_MAPPER_NAMESPACE + ModelName + MYBATIS_SEPARATOR + MYBATIS_SELECT + ModelName + MYBATIS_LIST, obj);
+        return this.selectList(obj, NULL_STRING);
     }
 
     public List<T> selectList(Object obj, String mapId) throws DataAccessException {
-        return sqlSession.selectList(MYBATIS_MAPPER_NAMESPACE + ModelName + MYBATIS_SEPARATOR + MYBATIS_SELECT + ModelName + MYBATIS_LIST + mapId, obj);
+        if (null == obj) {
+            return sqlSession.selectList(NAMESPACE + ModelName + SEPARATOR + SELECT + ModelName + LIST + mapId);
+        }
+        return sqlSession.selectList(NAMESPACE + ModelName + SEPARATOR + SELECT + ModelName + LIST + mapId, obj);
     }
 
     public int selectCount(Object obj) throws DataAccessException {
-        Object count = sqlSession.selectOne(MYBATIS_MAPPER_NAMESPACE + ModelName + MYBATIS_SEPARATOR + MYBATIS_SELECT + ModelName + MYBATIS_COUNT, obj);
-        if (null == count) {
-            return 0;
-        }
-        return (Integer) count;
+        return this.selectCount(obj, NULL_STRING);
     }
 
     public int selectCount(Object obj, String mapId) throws DataAccessException {
-        Object count = sqlSession.selectOne(MYBATIS_MAPPER_NAMESPACE + ModelName + MYBATIS_SEPARATOR + MYBATIS_SELECT + ModelName + MYBATIS_COUNT + mapId, obj);
+        Object count = sqlSession.selectOne(NAMESPACE + ModelName + SEPARATOR + SELECT + ModelName + COUNT + mapId, obj);
         if (null == count) {
             return 0;
         }
@@ -80,26 +82,47 @@ public class BaseDao<T> implements IBaseDao<T> {
     }
 
     public int insert(Object obj) throws DataAccessException {
-        return sqlSession.insert(MYBATIS_MAPPER_NAMESPACE + ModelName + MYBATIS_SEPARATOR + MYBATIS_INSERT + ModelName, obj);
+        return this.insert(obj, NULL_STRING);
     }
 
     public int insert(Object obj, String mapId) throws DataAccessException {
-        return sqlSession.insert(MYBATIS_MAPPER_NAMESPACE + ModelName + MYBATIS_SEPARATOR + MYBATIS_INSERT + ModelName + mapId, obj);
+        return sqlSession.insert(NAMESPACE + ModelName + SEPARATOR + INSERT + ModelName + mapId, obj);
     }
 
     public int update(Object obj) throws DataAccessException {
-        return sqlSession.update(MYBATIS_MAPPER_NAMESPACE + ModelName + MYBATIS_SEPARATOR + MYBATIS_UPDATE + ModelName, obj);
+        return this.update(obj, NULL_STRING);
     }
 
     public int update(Object obj, String mapId) throws DataAccessException {
-        return sqlSession.update(MYBATIS_MAPPER_NAMESPACE + ModelName + MYBATIS_SEPARATOR + MYBATIS_UPDATE + ModelName + mapId, obj);
+        return sqlSession.update(NAMESPACE + ModelName + SEPARATOR + UPDATE + ModelName + mapId, obj);
     }
 
     public int delete(Object obj) throws DataAccessException {
-        return sqlSession.delete(MYBATIS_MAPPER_NAMESPACE + ModelName + MYBATIS_SEPARATOR + MYBATIS_DELETE + ModelName, obj);
+        return this.delete(obj, NULL_STRING);
     }
 
     public int delete(Object obj, String mapId) throws DataAccessException {
-        return sqlSession.delete(MYBATIS_MAPPER_NAMESPACE + ModelName + MYBATIS_SEPARATOR + MYBATIS_DELETE + ModelName + mapId, obj);
+        return sqlSession.delete(NAMESPACE + ModelName + SEPARATOR + DELETE + ModelName + mapId, obj);
     }
+
+    public Page<T> selectPage(Object obj) throws DataAccessException {
+        return this.selectPage(obj, Page.DEFAULT_SIZE, 1);
+    }
+
+    public Page<T> selectPage(Object obj, int pageSize, int pageIndex) throws DataAccessException {
+        return this.selectPage(obj, NULL_STRING, pageSize, pageIndex);
+    }
+
+    public Page<T> selectPage(Object obj, String mapId, int pageSize, int pageIndex) throws DataAccessException {
+
+        List<T> data_list = this.sqlSession.selectList(NAMESPACE + ModelName + SEPARATOR + SELECT + ModelName + PAGE + mapId, obj);
+        int record_count = this.selectCount(obj);
+        int page_size = pageSize <= 0 ? Page.DEFAULT_SIZE : pageSize;
+        int page_count = Page.pageCount(record_count, page_size);
+        int page_index = Page.pageIndex(page_count, pageIndex);
+        List<Integer> page_list = Page.pageList(page_count, page_index);
+
+        return new Page<T>(data_list, record_count, page_size, page_count, page_index, page_list);
+    }
+
 }
